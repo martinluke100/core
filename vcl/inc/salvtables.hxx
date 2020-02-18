@@ -9,10 +9,11 @@
 #include <vcl/ctrl.hxx>
 #include <vcl/edit.hxx>
 #include <vcl/spinfld.hxx>
+#include <vcl/fixed.hxx>
 
 class SalInstanceBuilder : public weld::Builder
 {
-private:
+protected:
     std::unique_ptr<VclBuilder> m_xBuilder;
     VclPtr<vcl::Window> m_aOwnedToplevel;
 public:
