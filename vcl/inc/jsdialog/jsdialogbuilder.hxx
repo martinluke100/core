@@ -30,7 +30,30 @@ public:
     virtual std::unique_ptr<weld::ComboBox> weld_combo_box(const OString& id, bool bTakeOwnership = false) override;
 };
 
-class JSLabel : public SalInstanceLabel, public JSDialogSender
+template<class BaseInstanceClass, class VclClass>
+class JSWidget : public BaseInstanceClass, public JSDialogSender
+{
+public:
+    JSWidget(VclPtr<vcl::Window> aOwnedToplevel, VclClass* pObject,
+            SalInstanceBuilder* pBuilder, bool bTakeOwnership)
+    : BaseInstanceClass(pObject, pBuilder, bTakeOwnership)
+    , JSDialogSender(aOwnedToplevel)
+    {}
+
+    virtual void show() override
+    {
+        BaseInstanceClass::show();
+        notifyDialogState();
+    }
+
+    virtual void hide() override
+    {
+        BaseInstanceClass::hide();
+        notifyDialogState();
+    }
+};
+
+class JSLabel : public JSWidget<SalInstanceLabel, FixedText>
 {
 public:
     JSLabel(VclPtr<vcl::Window> aOwnedToplevel, FixedText* pLabel,
@@ -38,7 +61,7 @@ public:
     virtual void set_label(const OUString& rText) override;
 };
 
-class JSEntry : public SalInstanceEntry, public JSDialogSender
+class JSEntry : public JSWidget<SalInstanceEntry, ::Edit>
 {
 public:
     JSEntry(VclPtr<vcl::Window> aOwnedToplevel, ::Edit* pEntry,
@@ -46,7 +69,7 @@ public:
     virtual void set_text(const OUString& rText) override;
 };
 
-class JSListBox : public SalInstanceComboBoxWithoutEdit, public JSDialogSender
+class JSListBox : public JSWidget<SalInstanceComboBoxWithoutEdit, ::ListBox>
 {
 public:
     JSListBox(VclPtr<vcl::Window> aOwnedToplevel, ::ListBox* pListBox,
@@ -56,7 +79,7 @@ public:
     virtual void remove(int pos) override;
 };
 
-class JSComboBox : public SalInstanceComboBoxWithEdit, public JSDialogSender
+class JSComboBox : public JSWidget<SalInstanceComboBoxWithEdit, ::ComboBox>
 {
 public:
     JSComboBox(VclPtr<vcl::Window> aOwnedToplevel, ::ComboBox* pComboBox,
