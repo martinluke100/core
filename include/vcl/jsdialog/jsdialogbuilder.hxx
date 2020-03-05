@@ -6,7 +6,7 @@
 #include <vcl/sysdata.hxx>
 #include <vcl/virdev.hxx>
 #include <vcl/builder.hxx>
-#include <salvtables.hxx>
+#include <vcl/salvtables.hxx>
 #include <vcl/combobox.hxx>
 #include <vcl/button.hxx>
 
@@ -21,20 +21,26 @@ public:
     void notifyDialogState();
 };
 
-class JSInstanceBuilder : public SalInstanceBuilder
+class VCL_DLLPUBLIC JSInstanceBuilder : public SalInstanceBuilder
 {
+    vcl::LOKWindowId m_nWindowId;
+
 public:
     JSInstanceBuilder(weld::Widget* pParent, const OUString& rUIRoot, const OUString& rUIFile);
+    virtual ~JSInstanceBuilder() override;
     virtual std::unique_ptr<weld::Dialog> weld_dialog(const OString& id, bool bTakeOwnership = true) override;
     virtual std::unique_ptr<weld::Label> weld_label(const OString &id, bool bTakeOwnership = false) override;
     virtual std::unique_ptr<weld::Button> weld_button(const OString &id, bool bTakeOwnership = false) override;
     virtual std::unique_ptr<weld::Entry> weld_entry(const OString& id, bool bTakeOwnership = false) override;
     virtual std::unique_ptr<weld::ComboBox> weld_combo_box(const OString& id, bool bTakeOwnership = false) override;
     virtual std::unique_ptr<weld::Notebook> weld_notebook(const OString &id, bool bTakeOwnership = false) override;
+
+    static std::map<vcl::LOKWindowId, JSInstanceBuilder*>& GetLOKWeldBuilderMap();
+    static JSInstanceBuilder* FindLOKWeldBuilder(vcl::LOKWindowId nWindowId);
 };
 
 template<class BaseInstanceClass, class VclClass>
-class JSWidget : public BaseInstanceClass, public JSDialogSender
+class VCL_DLLPUBLIC JSWidget : public BaseInstanceClass, public JSDialogSender
 {
 public:
     JSWidget(VclPtr<vcl::Window> aOwnedToplevel, VclClass* pObject,
@@ -62,7 +68,7 @@ public:
     }
 };
 
-class JSLabel : public JSWidget<SalInstanceLabel, FixedText>
+class VCL_DLLPUBLIC JSLabel : public JSWidget<SalInstanceLabel, FixedText>
 {
 public:
     JSLabel(VclPtr<vcl::Window> aOwnedToplevel, FixedText* pLabel,
@@ -70,14 +76,14 @@ public:
     virtual void set_label(const OUString& rText) override;
 };
 
-class JSButton : public JSWidget<SalInstanceButton, ::Button>
+class VCL_DLLPUBLIC JSButton : public JSWidget<SalInstanceButton, ::Button>
 {
 public:
     JSButton(VclPtr<vcl::Window> aOwnedToplevel, ::Button* pButton,
             SalInstanceBuilder* pBuilder, bool bTakeOwnership);
 };
 
-class JSEntry : public JSWidget<SalInstanceEntry, ::Edit>
+class VCL_DLLPUBLIC JSEntry : public JSWidget<SalInstanceEntry, ::Edit>
 {
 public:
     JSEntry(VclPtr<vcl::Window> aOwnedToplevel, ::Edit* pEntry,
@@ -85,7 +91,7 @@ public:
     virtual void set_text(const OUString& rText) override;
 };
 
-class JSListBox : public JSWidget<SalInstanceComboBoxWithoutEdit, ::ListBox>
+class VCL_DLLPUBLIC JSListBox : public JSWidget<SalInstanceComboBoxWithoutEdit, ::ListBox>
 {
 public:
     JSListBox(VclPtr<vcl::Window> aOwnedToplevel, ::ListBox* pListBox,
@@ -95,7 +101,7 @@ public:
     virtual void remove(int pos) override;
 };
 
-class JSComboBox : public JSWidget<SalInstanceComboBoxWithEdit, ::ComboBox>
+class VCL_DLLPUBLIC JSComboBox : public JSWidget<SalInstanceComboBoxWithEdit, ::ComboBox>
 {
 public:
     JSComboBox(VclPtr<vcl::Window> aOwnedToplevel, ::ComboBox* pComboBox,
@@ -106,7 +112,7 @@ public:
     virtual void set_entry_text(const OUString& rText) override;
 };
 
-class JSNotebook : public JSWidget<SalInstanceNotebook, ::TabControl>
+class VCL_DLLPUBLIC JSNotebook : public JSWidget<SalInstanceNotebook, ::TabControl>
 {
 public:
     JSNotebook(VclPtr<vcl::Window> aOwnedToplevel, ::TabControl* pControl,
