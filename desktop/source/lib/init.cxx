@@ -155,6 +155,7 @@
 #include <vcl/builder.hxx>
 #include <vcl/abstdlg.hxx>
 #include <vcl/uitest/uiobject.hxx>
+#include <vcl/jsdialog/jsdialogbuilder.hxx>
 
 // Needef for getUndoManager()
 #include <com/sun/star/document/XUndoManager.hpp>
@@ -3545,6 +3546,7 @@ static void doc_sendDialogEvent(LibreOfficeKitDocument* /*pThis*/, unsigned nWin
 
     StringMap aMap(jsonToStringMap(pArguments));
     VclPtr<Window> pWindow = vcl::Window::FindLOKWindow(nWindowId);
+    JSInstanceBuilder* pBuilder = JSInstanceBuilder::FindLOKWeldBuilder(nWindowId);
 
     if (!pWindow && nWindowId >= 1000000000 /* why unsigned? */)
         pWindow = getSidebarWindow();
@@ -3601,9 +3603,11 @@ static void doc_sendDialogEvent(LibreOfficeKitDocument* /*pThis*/, unsigned nWin
                     }
                     else if (aMap["cmd"] == "selecttab")
                     {
-                        aMap["POS"] = aMap["data"];
+                        OString notebookId = OUStringToOString(aMap["id"], RTL_TEXTENCODING_ASCII_US);
+                        OString pageId = OUStringToOString(aMap["data"], RTL_TEXTENCODING_ASCII_US);
+                        int page = std::atoi(pageId.getStr());
 
-                        pUIWindow->execute(sSelectAction, aMap);
+                        pBuilder->weld_notebook(notebookId, false)->set_current_page(page);
                     }
                     else
                         bIsClickAction = true;
