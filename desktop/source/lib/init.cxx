@@ -3570,16 +3570,35 @@ static void doc_sendDialogEvent(LibreOfficeKitDocument* /*pThis*/, unsigned nWin
         {
             WindowUIObject aUIObject(pWindow);
             std::unique_ptr<UIObject> pUIWindow(aUIObject.get_child(aMap["id"]));
+            OString sControlId = OUStringToOString(aMap["id"], RTL_TEXTENCODING_ASCII_US);
             if (pUIWindow) {
                 bool bIsClickAction = false;
 
                 if (aMap.find("cmd") != aMap.end()) {
                     if (aMap["cmd"] == "selected")
                     {
-                        aMap["POS"] = aMap["data"];
-                        aMap["TEXT"] = aMap["data"];
+                        if (pBuilder)
+                        {
+                            auto pCombobox = pBuilder->weld_combo_box(sControlId, false);
+                            if (pCombobox)
+                            {
+                                int separatorPos = aMap["data"].indexOf(';');
+                                if (separatorPos)
+                                {
+                                    OUString entryPos = aMap["data"].copy(0, separatorPos);
+                                    OString posString = OUStringToOString(entryPos, RTL_TEXTENCODING_ASCII_US);
+                                    int pos = std::atoi(posString.getStr());
+                                    pCombobox->set_active(pos);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            aMap["POS"] = aMap["data"];
+                            aMap["TEXT"] = aMap["data"];
 
-                        pUIWindow->execute(sSelectAction, aMap);
+                            pUIWindow->execute(sSelectAction, aMap);
+                        }
                     }
                     else if (aMap["cmd"] == "plus")
                     {
@@ -3603,11 +3622,10 @@ static void doc_sendDialogEvent(LibreOfficeKitDocument* /*pThis*/, unsigned nWin
                     }
                     else if (aMap["cmd"] == "selecttab")
                     {
-                        OString notebookId = OUStringToOString(aMap["id"], RTL_TEXTENCODING_ASCII_US);
                         OString pageId = OUStringToOString(aMap["data"], RTL_TEXTENCODING_ASCII_US);
                         int page = std::atoi(pageId.getStr());
 
-                        pBuilder->weld_notebook(notebookId, false)->set_current_page(page);
+                        pBuilder->weld_notebook(sControlId, false)->set_current_page(page);
                     }
                     else
                         bIsClickAction = true;
