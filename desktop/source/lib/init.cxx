@@ -3568,73 +3568,101 @@ static void doc_sendDialogEvent(LibreOfficeKitDocument* /*pThis*/, unsigned nWin
 
         try
         {
-            WindowUIObject aUIObject(pWindow);
-            std::unique_ptr<UIObject> pUIWindow(aUIObject.get_child(aMap["id"]));
-            OString sControlId = OUStringToOString(aMap["id"], RTL_TEXTENCODING_ASCII_US);
-            if (pUIWindow) {
-                bool bIsClickAction = false;
+            bool bIsWeldedDialog = pBuilder != nullptr;
+            bool bContinueWithLOKWindow = false;
 
-                if (aMap.find("cmd") != aMap.end()) {
-                    if (aMap["cmd"] == "selected")
+            if (bIsWeldedDialog)
+            {
+                OString sControlId = OUStringToOString(aMap["id"], RTL_TEXTENCODING_ASCII_US);
+                OUString sControlType = aMap["type"];
+                OUString sAction = aMap["cmd"];
+
+                if (sControlType == "tabcontrol")
+                {
+                    auto pNotebook = pBuilder->weld_notebook(sControlId, false);
+                    if (pNotebook)
                     {
-                        if (pBuilder)
+                        if (sAction == "selecttab")
                         {
-                            auto pCombobox = pBuilder->weld_combo_box(sControlId, false);
-                            if (pCombobox)
+                            OString pageId = OUStringToOString(aMap["data"], RTL_TEXTENCODING_ASCII_US);
+                            int page = std::atoi(pageId.getStr());
+
+                            pNotebook->set_current_page(page);
+                        }
+                        else
+                            bContinueWithLOKWindow = true;
+                    }
+                }
+                else if (sControlType == "combobox")
+                {
+                    auto pCombobox = pBuilder->weld_combo_box(sControlId, false);
+                    if (pCombobox)
+                    {
+                        if (sAction == "selected")
+                        {
+                            int separatorPos = aMap["data"].indexOf(';');
+                            if (separatorPos)
                             {
-                                int separatorPos = aMap["data"].indexOf(';');
-                                if (separatorPos)
-                                {
-                                    OUString entryPos = aMap["data"].copy(0, separatorPos);
-                                    OString posString = OUStringToOString(entryPos, RTL_TEXTENCODING_ASCII_US);
-                                    int pos = std::atoi(posString.getStr());
-                                    pCombobox->set_active(pos);
-                                }
+                                OUString entryPos = aMap["data"].copy(0, separatorPos);
+                                OString posString = OUStringToOString(entryPos, RTL_TEXTENCODING_ASCII_US);
+                                int pos = std::atoi(posString.getStr());
+                                pCombobox->set_active(pos);
                             }
                         }
                         else
+                            bContinueWithLOKWindow = true;
+                    }
+                }
+                else
+                {
+                    bContinueWithLOKWindow = true;
+                }
+            }
+
+            if (!bIsWeldedDialog || bContinueWithLOKWindow)
+            {
+                WindowUIObject aUIObject(pWindow);
+                std::unique_ptr<UIObject> pUIWindow(aUIObject.get_child(aMap["id"]));
+                if (pUIWindow) {
+                    bool bIsClickAction = false;
+
+                    if (aMap.find("cmd") != aMap.end()) {
+                        if (aMap["cmd"] == "selected")
                         {
                             aMap["POS"] = aMap["data"];
                             aMap["TEXT"] = aMap["data"];
 
                             pUIWindow->execute(sSelectAction, aMap);
                         }
-                    }
-                    else if (aMap["cmd"] == "plus")
-                    {
-                        pUIWindow->execute(sUpAction, aMap);
-                    }
-                    else if (aMap["cmd"] == "minus")
-                    {
-                        pUIWindow->execute(sDownAction, aMap);
-                    }
-                    else if (aMap["cmd"] == "set" || aMap["cmd"] == "change")
-                    {
-                        aMap["TEXT"] = aMap["data"];
+                        else if (aMap["cmd"] == "plus")
+                        {
+                            pUIWindow->execute(sUpAction, aMap);
+                        }
+                        else if (aMap["cmd"] == "minus")
+                        {
+                            pUIWindow->execute(sDownAction, aMap);
+                        }
+                        else if (aMap["cmd"] == "set" || aMap["cmd"] == "change")
+                        {
+                            aMap["TEXT"] = aMap["data"];
 
-                        pUIWindow->execute(sClearAction, aMap);
-                        pUIWindow->execute(sTypeAction, aMap);
-                    }
-                    else if (aMap["cmd"] == "value")
-                    {
-                        aMap["VALUE"] = aMap["data"];
-                        pUIWindow->execute(sValue, aMap);
-                    }
-                    else if (aMap["cmd"] == "selecttab")
-                    {
-                        OString pageId = OUStringToOString(aMap["data"], RTL_TEXTENCODING_ASCII_US);
-                        int page = std::atoi(pageId.getStr());
-
-                        pBuilder->weld_notebook(sControlId, false)->set_current_page(page);
+                            pUIWindow->execute(sClearAction, aMap);
+                            pUIWindow->execute(sTypeAction, aMap);
+                        }
+                        else if (aMap["cmd"] == "value")
+                        {
+                            aMap["VALUE"] = aMap["data"];
+                            pUIWindow->execute(sValue, aMap);
+                        }
+                        else
+                            bIsClickAction = true;
                     }
                     else
                         bIsClickAction = true;
-                }
-                else
-                    bIsClickAction = true;
 
-                if (bIsClickAction)
-                    pUIWindow->execute(sClickAction, aMap);
+                    if (bIsClickAction)
+                        pUIWindow->execute(sClickAction, aMap);
+                }
             }
         } catch(...) {}
 
