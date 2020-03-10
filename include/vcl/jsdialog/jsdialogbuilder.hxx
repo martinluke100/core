@@ -9,6 +9,7 @@
 #include <vcl/salvtables.hxx>
 #include <vcl/combobox.hxx>
 #include <vcl/button.hxx>
+#include <vcl/fmtfield.hxx>
 
 typedef std::map<OString, weld::Widget*> WidgetMap;
 
@@ -43,7 +44,7 @@ public:
     virtual std::unique_ptr<weld::Entry> weld_entry(const OString& id, bool bTakeOwnership = false) override;
     virtual std::unique_ptr<weld::ComboBox> weld_combo_box(const OString& id, bool bTakeOwnership = false) override;
     virtual std::unique_ptr<weld::Notebook> weld_notebook(const OString &id, bool bTakeOwnership = false) override;
-
+    virtual std::unique_ptr<weld::SpinButton> weld_spin_button(const OString &id, bool bTakeOwnership = false) override;
     static weld::Widget* FindWeldWidgetsMap(vcl::LOKWindowId nWindowId, const OString& rWidget);
 };
 
@@ -135,6 +136,15 @@ public:
     virtual void remove_page(const OString& rIdent) override;
 
     virtual void append_page(const OString& rIdent, const OUString& rLabel) override;
+};
+
+class VCL_DLLPUBLIC JSSpinButton : public JSWidget<SalInstanceSpinButton, ::FormattedField>
+{
+public:
+    JSSpinButton(VclPtr<vcl::Window> aOwnedToplevel, ::FormattedField* pSpin,
+            SalInstanceBuilder* pBuilder, bool bTakeOwnership);
+
+    virtual void set_value(int value) override;
 };
 
 #endif

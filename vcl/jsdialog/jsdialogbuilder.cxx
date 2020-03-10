@@ -196,6 +196,19 @@ std::unique_ptr<weld::Notebook> JSInstanceBuilder::weld_notebook(const OString &
     return pWeldWidget;
 }
 
+std::unique_ptr<weld::SpinButton> JSInstanceBuilder::weld_spin_button(const OString &id, bool bTakeOwnership)
+{
+    FormattedField* pSpinButton = m_xBuilder->get<FormattedField>(id);
+    auto pWeldWidget = pSpinButton ?
+            std::make_unique<JSSpinButton>(m_bHasTopLevelDialog ? m_aOwnedToplevel : m_aParentDialog,
+                                            pSpinButton, this, bTakeOwnership) : nullptr;
+
+    if (pWeldWidget)
+        RememberWidget(id, pWeldWidget.get());
+
+    return pWeldWidget;
+}
+
 JSLabel::JSLabel(VclPtr<vcl::Window> aOwnedToplevel, FixedText* pLabel,
                     SalInstanceBuilder* pBuilder, bool bTakeOwnership)
 : JSWidget<SalInstanceLabel, FixedText>(aOwnedToplevel, pLabel, pBuilder, bTakeOwnership)
@@ -310,5 +323,17 @@ void JSNotebook::remove_page(const OString& rIdent)
 void JSNotebook::append_page(const OString& rIdent, const OUString& rLabel)
 {
     SalInstanceNotebook::append_page(rIdent, rLabel);
+    notifyDialogState();
+}
+
+JSSpinButton::JSSpinButton(VclPtr<vcl::Window> aOwnedToplevel, ::FormattedField* pSpin,
+                    SalInstanceBuilder* pBuilder, bool bTakeOwnership)
+: JSWidget<SalInstanceSpinButton, ::FormattedField>(aOwnedToplevel, pSpin, pBuilder, bTakeOwnership)
+{
+}
+
+void JSSpinButton::set_value(int value)
+{
+    SalInstanceSpinButton::set_value(value);
     notifyDialogState();
 }
