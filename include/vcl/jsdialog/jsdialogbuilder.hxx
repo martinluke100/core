@@ -45,6 +45,9 @@ public:
     virtual std::unique_ptr<weld::ComboBox> weld_combo_box(const OString& id, bool bTakeOwnership = false) override;
     virtual std::unique_ptr<weld::Notebook> weld_notebook(const OString &id, bool bTakeOwnership = false) override;
     virtual std::unique_ptr<weld::SpinButton> weld_spin_button(const OString &id, bool bTakeOwnership = false) override;
+
+    static weld::MessageDialog* CreateMessageDialog(weld::Widget* pParent, VclMessageType eMessageType,
+                                                     VclButtonsType eButtonType, const OUString& rPrimaryMessage);
     static weld::Widget* FindWeldWidgetsMap(vcl::LOKWindowId nWindowId, const OString& rWidget);
 };
 
@@ -145,6 +148,16 @@ public:
             SalInstanceBuilder* pBuilder, bool bTakeOwnership);
 
     virtual void set_value(int value) override;
+};
+
+class VCL_DLLPUBLIC JSMessageDialog : public SalInstanceMessageDialog, public JSDialogSender
+{
+public:
+    JSMessageDialog(::MessageDialog* pDialog, SalInstanceBuilder* pBuilder, bool bTakeOwnership);
+
+    virtual void set_primary_text(const OUString& rText) override;
+
+    virtual void set_secondary_text(const OUString& rText) override;
 };
 
 #endif
