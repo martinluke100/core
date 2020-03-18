@@ -45,6 +45,7 @@ public:
     virtual std::unique_ptr<weld::ComboBox> weld_combo_box(const OString& id, bool bTakeOwnership = false) override;
     virtual std::unique_ptr<weld::Notebook> weld_notebook(const OString &id, bool bTakeOwnership = false) override;
     virtual std::unique_ptr<weld::SpinButton> weld_spin_button(const OString &id, bool bTakeOwnership = false) override;
+    virtual std::unique_ptr<weld::CheckButton> weld_check_button(const OString &id, bool bTakeOwnership = false) override;
 
     static weld::MessageDialog* CreateMessageDialog(weld::Widget* pParent, VclMessageType eMessageType,
                                                      VclButtonsType eButtonType, const OUString& rPrimaryMessage);
@@ -168,6 +169,15 @@ public:
     virtual void set_primary_text(const OUString& rText) override;
 
     virtual void set_secondary_text(const OUString& rText) override;
+};
+
+class VCL_DLLPUBLIC JSCheckButton : public JSWidget<SalInstanceCheckButton, ::CheckBox>
+{
+public:
+    JSCheckButton(VclPtr<vcl::Window> aOwnedToplevel, ::CheckBox* pCheckBox,
+            SalInstanceBuilder* pBuilder, bool bTakeOwnership);
+
+    virtual void set_active(bool active) override;
 };
 
 #endif

@@ -209,6 +209,19 @@ std::unique_ptr<weld::SpinButton> JSInstanceBuilder::weld_spin_button(const OStr
     return pWeldWidget;
 }
 
+std::unique_ptr<weld::CheckButton> JSInstanceBuilder::weld_check_button(const OString &id, bool bTakeOwnership)
+{
+    CheckBox* pCheckButton = m_xBuilder->get<CheckBox>(id);
+    auto pWeldWidget = pCheckButton ?
+            std::make_unique<JSCheckButton>(m_bHasTopLevelDialog ? m_aOwnedToplevel : m_aParentDialog,
+                                            pCheckButton, this, bTakeOwnership) : nullptr;
+
+    if (pWeldWidget)
+        RememberWidget(id, pWeldWidget.get());
+
+    return pWeldWidget;
+}
+
 weld::MessageDialog* JSInstanceBuilder::CreateMessageDialog(weld::Widget* pParent, VclMessageType eMessageType,
                                                      VclButtonsType eButtonType, const OUString& rPrimaryMessage)
 {
@@ -393,5 +406,17 @@ void JSMessageDialog::set_primary_text(const OUString& rText)
 void JSMessageDialog::set_secondary_text(const OUString& rText)
 {
     SalInstanceMessageDialog::set_secondary_text(rText);
+    notifyDialogState();
+}
+
+JSCheckButton::JSCheckButton(VclPtr<vcl::Window> aOwnedToplevel, ::CheckBox* pCheckBox,
+            SalInstanceBuilder* pBuilder, bool bTakeOwnership)
+: JSWidget<SalInstanceCheckButton, ::CheckBox>(aOwnedToplevel, pCheckBox, pBuilder, bTakeOwnership)
+{
+}
+
+void JSCheckButton::set_active(bool active)
+{
+    SalInstanceCheckButton::set_active(active);
     notifyDialogState();
 }
