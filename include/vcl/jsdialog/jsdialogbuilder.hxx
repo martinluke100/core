@@ -76,8 +76,10 @@ public:
 
     virtual void set_sensitive(bool sensitive) override
     {
+        bool change = sensitive != BaseInstanceClass::get_sensitive();
         BaseInstanceClass::set_sensitive(sensitive);
-        notifyDialogState();
+        if (change)
+            notifyDialogState();
     }
 };
 
@@ -177,7 +179,7 @@ public:
     JSCheckButton(VclPtr<vcl::Window> aOwnedToplevel, ::CheckBox* pCheckBox,
             SalInstanceBuilder* pBuilder, bool bTakeOwnership);
 
-    virtual void set_active(bool active) override;
+    virtual void set_state(TriState eState) override;
 };
 
 #endif

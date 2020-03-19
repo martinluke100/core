@@ -415,8 +415,8 @@ JSCheckButton::JSCheckButton(VclPtr<vcl::Window> aOwnedToplevel, ::CheckBox* pCh
 {
 }
 
-void JSCheckButton::set_active(bool active)
+void JSCheckButton::set_state(TriState eState)
 {
-    SalInstanceCheckButton::set_active(active);
+    SalInstanceCheckButton::set_state(eState);
     notifyDialogState();
 }
