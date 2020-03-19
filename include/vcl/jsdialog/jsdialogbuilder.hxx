@@ -13,7 +13,7 @@
 
 typedef std::map<OString, weld::Widget*> WidgetMap;
 
-class JSDialogSender
+class VCL_DLLPUBLIC JSDialogSender
 {
     VclPtr<vcl::Window> m_aOwnedToplevel;
 public:
